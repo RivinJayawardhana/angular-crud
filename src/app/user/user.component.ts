@@ -1,53 +1,26 @@
-import { Component, OnInit } from '@angular/core';
-import { UserService, User } from '../user.service';
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { HttpClient, HttpClientModule } from '@angular/common/http'; // ✅ Import HttpClient
 
 @Component({
   selector: 'app-user',
+  standalone: true,
+  imports: [CommonModule, HttpClientModule], // ✅ Add HttpClientModule here
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.css']
 })
-export class UserComponent implements OnInit {
-  users: User[] = [];
-  
-  constructor(private userService: UserService) {}
+export class UserComponent {
+  users: any[] = [];
 
-  ngOnInit(): void {
-    this.loadUsers();
+  constructor(private http: HttpClient) {} // ✅ HttpClient injected properly
+
+  ngOnInit() {
+    this.fetchUsers();
   }
 
-  loadUsers(): void {
-    this.userService.getUsers().subscribe(data => {
+  fetchUsers() {
+    this.http.get<any[]>('http://localhost:8080/api/users').subscribe(data => {
       this.users = data;
     });
-  }
-
-  deleteUser(id: number): void {
-    if (confirm('Are you sure?')) {
-      this.userService.deleteUser(id).subscribe(() => {
-        this.loadUsers();
-      });
-    }
-  }
-
-  openAddUserModal(): void {
-    let name = prompt('Enter Name:');
-    let email = prompt('Enter Email:');
-    if (name && email) {
-      const newUser: User = { id: 0, name, email };
-      this.userService.addUser(newUser).subscribe(() => {
-        this.loadUsers();
-      });
-    }
-  }
-
-  editUser(user: User): void {
-    let newName = prompt('Edit Name:', user.name);
-    let newEmail = prompt('Edit Email:', user.email);
-    if (newName && newEmail) {
-      const updatedUser: User = { ...user, name: newName, email: newEmail };
-      this.userService.updateUser(user.id, updatedUser).subscribe(() => {
-        this.loadUsers();
-      });
-    }
   }
 }
